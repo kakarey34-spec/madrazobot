@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: madrazobot
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run deploy-commands
+    startCommand: npm start
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
+      - key: NODE_VERSION
+        value: "20"
