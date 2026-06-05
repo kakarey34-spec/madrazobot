@@ -5,8 +5,9 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  AttachmentBuilder,
 } = require('discord.js');
-const { applicationStaffRoleIds } = require('../../config');
+const { applicationStaffRoleIds, transcriptChannelId } = require('../../config');
 const { isStaff } = require('../../utils/permissions');
 
 const CLOSE_BUTTON_ID = 'application_close';
@@ -50,6 +51,79 @@ function buildCloseRow() {
 
 function sanitizeUsername(username) {
   return username.toLowerCase().replace(/[^a-z0-9-_]/g, '-').slice(0, 32);
+}
+
+async function fetchAllMessages(channel) {
+  const messages = [];
+  let lastId;
+
+  while (true) {
+    const batch = await channel.messages.fetch({
+      limit: 100,
+      ...(lastId && { before: lastId }),
+    });
+
+    if (batch.size === 0) break;
+
+    messages.push(...batch.values());
+    lastId = batch.last().id;
+
+    if (batch.size < 100) break;
+  }
+
+  return messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+}
+
+function formatTranscript(channel, messages, closedBy) {
+  const header = [
+    `Application Transcript`,
+    `Channel: #${channel.name}`,
+    `Closed by: ${closedBy.tag} (${closedBy.id})`,
+    `Closed at: ${new Date().toISOString()}`,
+    '',
+    '─'.repeat(50),
+    '',
+  ].join('\n');
+
+  const body = messages.map((message) => {
+    const time = new Date(message.createdTimestamp).toISOString();
+    const author = `${message.author.tag} (${message.author.id})`;
+    const parts = [message.content || ''];
+
+    if (message.embeds.length > 0) {
+      for (const embed of message.embeds) {
+        if (embed.title) parts.push(`[Embed Title] ${embed.title}`);
+        if (embed.description) parts.push(`[Embed] ${embed.description}`);
+      }
+    }
+
+    if (message.attachments.size > 0) {
+      const urls = [...message.attachments.values()].map((a) => a.url).join(', ');
+      parts.push(`[Attachments] ${urls}`);
+    }
+
+    return `[${time}] ${author}\n${parts.filter(Boolean).join('\n')}`;
+  }).join('\n\n');
+
+  return `${header}${body}`;
+}
+
+async function sendTranscript(channel, closedBy) {
+  const transcriptChannel = await channel.guild.channels.fetch(transcriptChannelId).catch(() => null);
+  if (!transcriptChannel) {
+    console.error(`Transcript channel not found: ${transcriptChannelId}`);
+    return;
+  }
+
+  const messages = await fetchAllMessages(channel);
+  const transcript = formatTranscript(channel, messages, closedBy);
+  const fileName = `${channel.name}-${Date.now()}.txt`;
+  const attachment = new AttachmentBuilder(Buffer.from(transcript, 'utf-8'), { name: fileName });
+
+  await transcriptChannel.send({
+    content: `Application ticket κλείστηκε: **${channel.name}** από ${closedBy}`,
+    files: [attachment],
+  });
 }
 
 async function createApplicationTicket(interaction) {
@@ -124,15 +198,20 @@ async function closeApplicationTicket(interaction) {
     return;
   }
 
-  await interaction.reply({ content: 'Closing this ticket in 3 seconds...' });
+  await interaction.reply({ content: 'Κλείνει το ticket...' });
 
-  setTimeout(async () => {
-    try {
-      await interaction.channel.delete('Application ticket closed by staff');
-    } catch (error) {
-      console.error('Failed to delete application channel:', error);
-    }
-  }, 3000);
+  const ticketChannel = interaction.channel;
+
+  try {
+    await sendTranscript(ticketChannel, interaction.user);
+    await ticketChannel.delete(`Application ticket closed by ${interaction.user.tag}`);
+  } catch (error) {
+    console.error('Failed to close application ticket:', error);
+    await interaction.followUp({
+      content: 'Αποτυχία κλεισίματος του ticket. Δοκίμασε ξανά.',
+      ephemeral: true,
+    });
+  }
 }
 
 async function handleApplicationButton(interaction) {

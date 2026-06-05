@@ -3,20 +3,20 @@ const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('
 function buildApplicationPanel() {
   const embed = new EmbedBuilder()
     .setColor(0x57f287)
-    .setTitle('Apply Here')
+    .setTitle('Madrazo Applications')
     .setDescription(
       [
-        'Interested in joining our team?',
+        'Θες να μπεις στους Madrazo;',
         '',
-        'Click the button below to open a private application ticket.',
-        'Only you and staff will be able to see it.',
+        'Πάτα το κουμπί από κάτω για να ανοίξεις ένα application ticket και κάνε την αίτησή σου.',
+        'Μόνο εσύ και το staff θα μπορείτε να το δείτε.',
       ].join('\n'),
     );
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('application_apply')
-      .setLabel('Apply')
+      .setLabel('Άνοιξε Application')
       .setStyle(ButtonStyle.Success),
   );
 
