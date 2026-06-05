@@ -1,4 +1,4 @@
-const express = require('express');
+const http = require('http');
 const { selfPingUrl, selfPingIntervalMs } = require('../config');
 
 function startSelfPing(url, intervalMs) {
@@ -19,27 +19,38 @@ function startSelfPing(url, intervalMs) {
 }
 
 function createWebServer(port) {
-  const app = express();
+  const server = http.createServer((req, res) => {
+    const path = req.url?.split('?')[0] ?? '/';
 
-  app.get('/', (_req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      service: 'madrazobot',
-      uptime: process.uptime(),
-    });
+    if (path === '/health') {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('ok');
+      return;
+    }
+
+    if (path === '/') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        status: 'ok',
+        service: 'madrazobot',
+        uptime: process.uptime(),
+      }));
+      return;
+    }
+
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
   });
 
-  app.get('/health', (_req, res) => {
-    res.status(200).send('OK');
-  });
-
-  return app.listen(port, () => {
-    console.log(`Health endpoint listening on port ${port}`);
+  server.listen(port, () => {
+    console.log(`Keepalive server listening on port ${port}`);
 
     if (selfPingUrl) {
       startSelfPing(selfPingUrl, selfPingIntervalMs);
     }
   });
+
+  return server;
 }
 
 module.exports = { createWebServer };
