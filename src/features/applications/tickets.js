@@ -11,6 +11,34 @@ const { isStaff } = require('../../utils/permissions');
 
 const CLOSE_BUTTON_ID = 'application_close';
 
+const APPLICATION_MESSAGE = `**APPLICATION**
+
+1) Όνομα IRL:
+2) Ηλικία:
+3) Πόσο καιρό παίζεις criminal rp:
+4) Γιατί να σε επιλέξουμε:
+5) Ποια είναι η ειδικότητα σου:
+6) Πόσες ώρες θα είσαι On:
+8) Τι θέση πιστεύεις θα φτάσεις:
+9) Ποια βαθμίδα σε ενδιαφέρει και γιατί:
+10) Έχετε διαβάσει καλά τα rules?:
+11) Κάποια σημείωση:
+
+Παρακαλούμε τις αιτήσεις να τις απαντάτε έτσι:
+
+1) Όνομα IRL: (απάντηση)
+2) Ηλικία: (απάντηση)
+3) Πόσο καιρό παίζεις criminal rp: (απάντηση)
+4) Γιατί να σε επιλέξουμε: (απάντηση)
+5) Ποια είναι η ειδικότητα σου: (απάντηση)
+6) Πόσες ώρες θα είσαι On: (απάντηση)
+8) Τι θέση πιστεύεις θα φτάσεις: (απάντηση)
+9) Ποια βαθμίδα σε ενδιαφέρει και γιατί: (απάντηση)
+10) Έχετε διαβάσει καλά τα rules?: (απάντηση)
+11) Κάποια σημείωση: (απάντηση)
+
+Αλλιώς οποίος ξέρει εμένα ή <@1237787274108866643> Dm Για Roles!`;
+
 function buildCloseRow() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -72,23 +100,11 @@ async function createApplicationTicket(interaction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x5865f2)
-    .setTitle('Application Ticket')
-    .setDescription(
-      [
-        `Welcome ${member}, thank you for applying!`,
-        '',
-        'Please answer the following:',
-        '1. Why do you want to join?',
-        '2. What experience do you have?',
-        '3. Anything else we should know?',
-        '',
-        'Staff will review your application shortly.',
-      ].join('\n'),
-    )
-    .setFooter({ text: 'Use the button below to close this ticket when finished.' });
+    .setDescription(APPLICATION_MESSAGE)
+    .setFooter({ text: 'Χρησιμοποιήστε το κουμπί παρακάτω για να κλείσετε το ticket.' });
 
   await channel.send({
-    content: `${member} — staff has been notified.`,
+    content: `@everyone ${member}`,
     embeds: [embed],
     components: [buildCloseRow()],
   });
