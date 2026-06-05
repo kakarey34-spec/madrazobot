@@ -14,7 +14,7 @@ module.exports = {
   guildId: process.env.DISCORD_GUILD_ID,
   port: Number(process.env.PORT) || 3000,
   selfPingUrl: process.env.RENDER_EXTERNAL_URL || process.env.SELF_PING_URL || null,
-  selfPingIntervalMs: Number(process.env.SELF_PING_INTERVAL_MS) || 14 * 60 * 1000,
+  selfPingIntervalMs: Number(process.env.SELF_PING_INTERVAL_MS) || 3 * 60 * 1000,
 
   applicationStaffRoleIds: [
     '1384167697977315338',
