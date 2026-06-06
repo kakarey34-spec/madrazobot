@@ -1,19 +1,47 @@
 const { EmbedBuilder } = require('discord.js');
 const { isWhitelisted } = require('./whitelist');
-const { hasLinks, isLinkAuthorized } = require('./links');
+const { collectMessageText, messageHasLinks, isLinkAuthorized } = require('./links');
 const { logSecurityEvent } = require('./logging');
 
 async function handleAntiLink(message) {
   if (!message.guild || message.author.bot) return false;
-  if (!message.content || !hasLinks(message.content)) return false;
+
+  if (message.partial) {
+    try {
+      await message.fetch();
+    } catch (error) {
+      console.error('Anti-link: failed to fetch partial message:', error.message);
+      return false;
+    }
+  }
+
+  if (!messageHasLinks(message)) return false;
+
+  const scannedText = collectMessageText(message);
 
   const member = message.member ?? await message.guild.members.fetch(message.author.id).catch(() => null);
   if (!member) return false;
 
   if (isWhitelisted(member)) return false;
-  if (isLinkAuthorized(message.author.id, message.content)) return false;
+  if (isLinkAuthorized(message.author.id, scannedText)) return false;
 
-  await message.delete().catch(() => null);
+  try {
+    await message.delete();
+  } catch (error) {
+    console.error('Anti-link: failed to delete message:', error.message);
+    await logSecurityEvent(message.guild, {
+      title: 'Anti-Link: Delete Failed',
+      description: 'Detected an unauthorized link but could not delete the message. Check bot permissions.',
+      color: 0xed4245,
+      fields: [
+        { name: 'User', value: `${message.author.tag} (\`${message.author.id}\`)`, inline: true },
+        { name: 'Channel', value: `${message.channel}`, inline: true },
+        { name: 'Error', value: error.message },
+        { name: 'Content', value: scannedText.slice(0, 1000) || '*empty*' },
+      ],
+    });
+    return true;
+  }
 
   const notice = new EmbedBuilder()
     .setColor(0xed4245)
@@ -35,7 +63,7 @@ async function handleAntiLink(message) {
     fields: [
       { name: 'User', value: `${message.author.tag} (\`${message.author.id}\`)`, inline: true },
       { name: 'Channel', value: `${message.channel}`, inline: true },
-      { name: 'Content', value: message.content.slice(0, 1000) || '*empty*' },
+      { name: 'Content', value: scannedText.slice(0, 1000) || '*empty*' },
     ],
   });
 
