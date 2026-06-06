@@ -29,4 +29,6 @@ module.exports = {
   ],
 
   transcriptChannelId: '1512410721215053965',
+
+  securityLogChannelId: process.env.SECURITY_LOG_CHANNEL_ID || '1512796032944046090',
 };
