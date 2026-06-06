@@ -1,5 +1,4 @@
 const { EmbedBuilder } = require('discord.js');
-const { isWhitelisted } = require('./whitelist');
 const { collectMessageText, messageHasLinks, isLinkAuthorized } = require('./links');
 const { logSecurityEvent } = require('./logging');
 
@@ -19,10 +18,6 @@ async function handleAntiLink(message) {
 
   const scannedText = collectMessageText(message);
 
-  const member = message.member ?? await message.guild.members.fetch(message.author.id).catch(() => null);
-  if (!member) return false;
-
-  if (isWhitelisted(member)) return false;
   if (isLinkAuthorized(message.author.id, scannedText)) return false;
 
   try {
@@ -47,9 +42,9 @@ async function handleAntiLink(message) {
     .setColor(0xed4245)
     .setTitle('Links Not Allowed')
     .setDescription(
-      `${message.author}, links are not allowed in this server unless explicitly authorized by staff.`,
+      `${message.author}, links are not allowed in this server. Staff must authorize you with \`/authorizeuserlink\` before you can post links.`,
     )
-    .setFooter({ text: 'Contact staff if you need to share a link.' });
+    .setFooter({ text: 'No roles bypass this rule — authorization is required.' });
 
   const sent = await message.channel.send({ embeds: [notice] }).catch(() => null);
   if (sent) {

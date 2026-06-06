@@ -10,7 +10,7 @@ function canManageSecurity(interaction) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('securitywhitelist')
-    .setDescription('Manage the security whitelist for trusted users')
+    .setDescription('Whitelist users for anti-nuke/anti-raid (does not allow links)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addSubcommand((sub) =>
       sub

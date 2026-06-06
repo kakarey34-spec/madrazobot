@@ -10,7 +10,7 @@ function canManageSecurity(interaction) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('authorizeuserlink')
-    .setDescription('Authorize a user to post links in the server')
+    .setDescription('The only way to allow a user to post links in the server')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addSubcommand((sub) =>
       sub
