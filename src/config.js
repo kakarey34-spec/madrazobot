@@ -30,5 +30,12 @@ module.exports = {
 
   transcriptChannelId: '1512410721215053965',
 
+  applicationApprovedRoleId: '1329124640110415942',
+
+  applicationPingChannelIds: [
+    '1513222882669625466',
+    '1512424615622869094',
+  ],
+
   securityLogChannelId: process.env.SECURITY_LOG_CHANNEL_ID || '1512796032944046090',
 };

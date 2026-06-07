@@ -22,7 +22,14 @@ module.exports = {
     }
 
     if (interaction.isButton()) {
-      if (interaction.customId === 'application_apply' || interaction.customId === 'application_close') {
+      const applicationButtons = [
+        'application_apply',
+        'application_approve',
+        'application_deny',
+        'application_close',
+      ];
+
+      if (applicationButtons.includes(interaction.customId)) {
         await handleApplicationButton(interaction);
       }
     }
