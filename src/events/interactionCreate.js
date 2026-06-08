@@ -30,7 +30,20 @@ module.exports = {
       ];
 
       if (applicationButtons.includes(interaction.customId)) {
-        await handleApplicationButton(interaction);
+        try {
+          await handleApplicationButton(interaction);
+        } catch (error) {
+          console.error(`Error handling application button (${interaction.customId}):`, error);
+          const payload = {
+            content: 'Something went wrong while handling that button. Please try again or contact staff.',
+            ephemeral: true,
+          };
+          if (interaction.replied || interaction.deferred) {
+            await interaction.followUp(payload).catch(() => null);
+          } else {
+            await interaction.reply(payload).catch(() => null);
+          }
+        }
       }
     }
   },

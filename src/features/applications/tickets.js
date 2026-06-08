@@ -1,6 +1,7 @@
 const {
   ChannelType,
   PermissionFlagsBits,
+  OverwriteType,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -213,9 +214,14 @@ async function createApplicationTicket(interaction) {
   }
 
   const permissionOverwrites = [
-    { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+    {
+      id: guild.id,
+      type: OverwriteType.Role,
+      deny: [PermissionFlagsBits.ViewChannel],
+    },
     {
       id: member.id,
+      type: OverwriteType.Member,
       allow: [
         PermissionFlagsBits.ViewChannel,
         PermissionFlagsBits.SendMessages,
@@ -225,6 +231,7 @@ async function createApplicationTicket(interaction) {
     },
     ...applicationStaffRoleIds.map((roleId) => ({
       id: roleId,
+      type: OverwriteType.Role,
       allow: [
         PermissionFlagsBits.ViewChannel,
         PermissionFlagsBits.SendMessages,
